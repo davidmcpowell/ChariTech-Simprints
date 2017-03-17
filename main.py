@@ -3,6 +3,12 @@ import png
 import os
 from sklearn import tree
 import random
+from scipy import ndimage as ndi
+from skimage import feature
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import tensorflow as tf
+
 
 def classify():
     classifier, test_data, test_labels = train()
@@ -23,6 +29,9 @@ def train():
     #extracts file name from relative path
     train_labels = images_to_labels(training_images, image_labels)
     test_labels = images_to_labels(test_images, image_labels)
+    print 'Extracted Training Data'
+    # print training_data
+    # print train_labels
     classifier.fit(training_data, train_labels)
     return classifier, test_data, test_labels
 
@@ -39,7 +48,8 @@ def get_all_image_file_names():
     image_files = [os.path.join(outer_dir, label, file_name)
                         for label in labels
                         for file_name in os.listdir(os.path.join(outer_dir, label))
-                        if random.random() > 0]
+                        if random.random() > 0.8]
+    print 'Number of images used:', len(image_files)
     return image_files
 
 def get_training_and_test_data():
@@ -70,22 +80,87 @@ def read_png_file(file_name):
         image = np.zeros((width, height))
         row_num = 0
         for row in values:
-            image[row_num, :] = np.array(row[1])
+            image[row_num, :] = np.array(row)
             row_num += 1
-        compressed = compress(image)
+        # compressed = compress(image)
+        # compressed = image.flatten()
+        # compressed = convert_to_binary(image).flatten()
+        compressed = get_features(image, 128)
     return compressed
 
 def compress(values):
-    num_vals = 512 /16
-    compressed_vals = np.zeros((num_vals, 512/16))
+    grid_size = 1
+    num_vals = 512 / grid_size
+    compressed_vals = np.zeros((num_vals, 512/grid_size))
     for i in xrange(num_vals):
         for j in xrange(num_vals):
-            small_grid = values[16*i : i*16+16, 16*j: 16*j +16]
+            small_grid = values[grid_size*i : (i+1)*grid_size, grid_size*j: grid_size*(j+1)]
             compressed_vals[i, j] = np.mean(small_grid)
     compressed_vals = compressed_vals.flatten()
     return compressed_vals
 
+def convert_to_binary(image):
+    width = len(image)
+    bin_image = np.zeros((width, width))
+    for i in xrange(width):
+        for j in xrange(width):
+            bin_image[i, j] = (image[i, j] > 144)
+
+    # for row in bin_image:
+    #     print row
+    return bin_image
+
+
+def plot_bin_image(image):
+    image = image.astype(int)
+    file_name = '144.png' % (threshold)
+    plt.imsave(file_name, np.array(image), cmap=cm.gray)
+
+def get_edges(image):
+    edges = feature.canny(image, sigma=3)
+    # a = 0
+    # for row in edges:
+    #     for pixel in row:
+    #         if pixel:
+    #             a += 1
+    return edges
+
+def get_features(image, grid_size):
+    num_vals = 512 / grid_size
+    vertical = np.zeros((num_vals, num_vals))
+    horizontal = np.zeros((num_vals, num_vals))
+    for i in xrange(num_vals):
+        for j in xrange(num_vals):
+            small_grid = image[grid_size*i : (i+1)*grid_size, grid_size*j: grid_size*(j+1)]
+            vertical[i, j], horizontal[i, j] = calculate_gradient(small_grid)
+    features = np.concatenate([vertical.flatten(), horizontal.flatten()])
+    return features
+
+def calculate_gradient(image_section):
+    vertical = 0
+    horizontal = 0
+    num_rows = len(image_section)
+    num_cols = len(image_section[0])
+    for row in image_section:
+        for i in xrange(num_rows-1):
+            horizontal += abs(row[i] - row[i+1])
+
+    for column in image_section.T:
+        for i in xrange(len(column)-1):
+            vertical += abs(column[i] - column[i+1])
+    vertical = vertical/float(((num_rows - 1)*(num_cols-1)))
+    horizontal = horizontal/float(((num_rows - 1)*(num_cols-1)))
+    return horizontal, vertical
+
+
+
 if __name__ == '__main__':
+    # for threshold in xrange (128, 164, 4):
+    #     image = read_png_file('fingerprintClassification/trainingSet/A/f1675_02.png')
+    #     image = convert_to_binary(image, threshold)
+    #     # # image = get_edges(image)
+    #     plot_bin_image(image, threshold)
+    # plot_bin_image(np.array([[0, 0, 0], [0, 1, 0], [1, 1, 1]]))
     classify()
 
 
