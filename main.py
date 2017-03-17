@@ -19,8 +19,15 @@ def read_png_file(file_name):
             image[row_num, :] = np.array(row[1])
             row_num += 1
         compressed = compress(image)
+    print compressed
 
 def compress(values):
+    num_vals = 512 /16
+    compressed_vals = np.zeros((num_vals, 512/16))
+    for i in xrange(num_vals):
+        for j in xrange(num_vals):
+            small_grid = values[16*i : i*16+16, 16*j: 16*j +16]
+            compressed_vals[i, j] = np.mean(small_grid)
 
     return compressed_vals
 
