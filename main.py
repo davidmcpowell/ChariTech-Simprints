@@ -24,8 +24,8 @@ def construct_nn():
     return model
 
 
-def classify():
-    classifier, predictions, test_labels = train()
+def classify(method='tree'):
+    classifier, predictions, test_labels = train(method)
     results = compare(test_labels, predictions)
     print results
     
@@ -45,7 +45,7 @@ def train(method='tree'):
     if method == 'tree':
         classifier = tree.DecisionTreeClassifier()
         classifier.fit(training_data, train_labels)
-        predictons = classifier.predict(test_data)
+        predictions = classifier.predict(test_data)
     else:
         classifier = construct_nn()
         nn_labels = get_nn_labels(train_labels)
