@@ -4,7 +4,6 @@ import os
 from sklearn import tree
 import random
 from scipy import ndimage as ndi
-from skimage import feature
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import tensorflow as tf
@@ -123,7 +122,7 @@ def read_png_file(file_name):
         # compressed = compress(image)
         # compressed = image.flatten()
         # compressed = convert_to_binary(image).flatten()
-        compressed = get_features(image, 128)
+        compressed = get_features(image, 64)
     return compressed
 
 def compress(values):
@@ -200,6 +199,8 @@ if __name__ == '__main__':
     #     plot_bin_image(image, threshold)
     # plot_bin_image(np.array([[0, 0, 0], [0, 1, 0], [1, 1, 1]]))
     classify('nn')
+
+
 
 
 
