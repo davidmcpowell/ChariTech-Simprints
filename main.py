@@ -1,9 +1,15 @@
 import numpy as np
 import png
+import os
 
 def classify():
     pass
 
+def train():
+    image_labels = get_image_labels()
+
+def get_image_labels():
+    os.listdir(some_path)
 
 def read_png_file(file_name):
     with open(file_name, 'r') as f:
