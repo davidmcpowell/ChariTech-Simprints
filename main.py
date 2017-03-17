@@ -26,6 +26,7 @@ def construct_nn():
 
 def classify(method='tree'):
     classifier, predictions, test_labels = train(method)
+    classifier.save('nn')
     results = compare(test_labels, predictions)
     print results
     
@@ -59,7 +60,6 @@ def format_predictions(predictions):
     new_predictions = []
     for prediction in predictions:
         new_predictions.append(np.argmax(prediction))
-    print new_predictions
     return new_predictions
 
 
@@ -83,15 +83,17 @@ def get_all_image_file_names():
     image_files = [os.path.join(outer_dir, label, file_name)
                         for label in labels
                         for file_name in os.listdir(os.path.join(outer_dir, label))
-                        if random.random() > 0.8]
+                        if random.random() > 0]
     print 'Number of images used:', len(image_files)
     return image_files
 
 def get_training_and_test_data():
     image_files = get_all_image_file_names()
     np.random.shuffle(image_files)
-    training_images = image_files[:len(image_files)/2]
-    test_images = image_files[len(image_files)/2:]
+    # training_images = image_files[:len(image_files)/2]
+    training_images = image_files
+    # test_images = image_files[len(image_files)/2:]
+    test_images = []
     training_data = np.array([read_png_file(image_file) for image_file in training_images])
     test_data = np.array([read_png_file(image_file) for image_file in test_images])
     return training_data, training_images, test_data, test_images
@@ -197,7 +199,7 @@ if __name__ == '__main__':
     #     # # image = get_edges(image)
     #     plot_bin_image(image, threshold)
     # plot_bin_image(np.array([[0, 0, 0], [0, 1, 0], [1, 1, 1]]))
-    classify()
+    classify('nn')
 
 
 
