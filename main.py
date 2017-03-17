@@ -8,6 +8,20 @@ from skimage import feature
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+
+
+def construct_nn():
+    model = Sequential()
+    model.add(Dense(units=64, input_dim=32))
+    model.add(Activation('tanh'))
+    model.add(Dense(units=5))
+    model.add(Activation('softmax'))
+    model.compile(optimizer='rmsprop',
+              loss='mse',
+              metrics=['accuracy'])
+    return model
 
 
 def classify():
@@ -25,6 +39,7 @@ def compare(labels, predicted_labels):
 def train():
     image_labels = get_image_labels()
     classifier = tree.DecisionTreeClassifier()
+    model = construct_nn()
     training_data, training_images, test_data, test_images = get_training_and_test_data()
     #extracts file name from relative path
     train_labels = images_to_labels(training_images, image_labels)
@@ -32,8 +47,21 @@ def train():
     print 'Extracted Training Data'
     # print training_data
     # print train_labels
-    classifier.fit(training_data, train_labels)
+    nn_labels = get_nn_labels(train_labels)
+    model.fit(training_data, nn_labels)
+    print model.predict(test_data)
+    # classifier.fit(training_data, train_labels)
     return classifier, test_data, test_labels
+
+def format_predictions(predictions):
+    
+
+def get_nn_labels(labels):
+    nn_labels = np.zeros((len(labels), 5))
+    for i in xrange(len(labels)):
+        value = labels[i]
+        nn_labels[i, value] = 1
+    return nn_labels 
 
 def images_to_labels(image_list, image_labels):
     file_names = [image_file.split('/')[-1] for image_file in image_list]
@@ -48,7 +76,7 @@ def get_all_image_file_names():
     image_files = [os.path.join(outer_dir, label, file_name)
                         for label in labels
                         for file_name in os.listdir(os.path.join(outer_dir, label))
-                        if random.random() > 0.8]
+                        if random.random() > 0.99]
     print 'Number of images used:', len(image_files)
     return image_files
 
