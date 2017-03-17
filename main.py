@@ -26,7 +26,6 @@ def construct_nn():
 
 def classify(method='tree'):
     classifier, predictions, test_labels = train(method)
-    classifier.save('nn')
     results = compare(test_labels, predictions)
     print results
     
@@ -51,7 +50,8 @@ def train(method='tree'):
         classifier = construct_nn()
         nn_labels = get_nn_labels(train_labels)
         classifier.fit(training_data, nn_labels)
-        predictions =  classifier.predict(test_data)
+        classifier.save('nn')
+        predictions = classifier.predict(test_data)
         predictions = format_predictions(predictions)
     
     return classifier, predictions, test_labels
