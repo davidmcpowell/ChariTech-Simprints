@@ -122,7 +122,7 @@ def read_png_file(file_name):
         # compressed = compress(image)
         # compressed = image.flatten()
         # compressed = convert_to_binary(image).flatten()
-        compressed = get_features(image, 64)
+        compressed = get_features(image, 128)
     return compressed
 
 def compress(values):
