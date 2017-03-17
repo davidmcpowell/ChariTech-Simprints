@@ -25,9 +25,8 @@ def construct_nn():
 
 
 def classify():
-    classifier, test_data, test_labels = train()
-    predicted_labels = classifier.predict(test_data)
-    results = compare(test_labels, predicted_labels)
+    classifier, predictions, test_labels = train()
+    results = compare(test_labels, predictions)
     print results
     
 def compare(labels, predicted_labels):
@@ -36,25 +35,33 @@ def compare(labels, predicted_labels):
     return correct / float(len(labels))
 
 # this function does stuff
-def train():
+def train(method='tree'):
     image_labels = get_image_labels()
-    classifier = tree.DecisionTreeClassifier()
-    model = construct_nn()
+
     training_data, training_images, test_data, test_images = get_training_and_test_data()
-    #extracts file name from relative path
     train_labels = images_to_labels(training_images, image_labels)
     test_labels = images_to_labels(test_images, image_labels)
     print 'Extracted Training Data'
-    # print training_data
-    # print train_labels
-    nn_labels = get_nn_labels(train_labels)
-    model.fit(training_data, nn_labels)
-    print model.predict(test_data)
-    # classifier.fit(training_data, train_labels)
-    return classifier, test_data, test_labels
+    if method == 'tree':
+        classifier = tree.DecisionTreeClassifier()
+        classifier.fit(training_data, train_labels)
+        predictons = classifier.predict(test_data)
+    else:
+        classifier = construct_nn()
+        nn_labels = get_nn_labels(train_labels)
+        classifier.fit(training_data, nn_labels)
+        predictions =  classifier.predict(test_data)
+        predictions = format_predictions(predictions)
+    
+    return classifier, predictions, test_labels
 
 def format_predictions(predictions):
-    
+    new_predictions = []
+    for prediction in predictions:
+        new_predictions.append(np.argmax(prediction))
+    print new_predictions
+    return new_predictions
+
 
 def get_nn_labels(labels):
     nn_labels = np.zeros((len(labels), 5))
@@ -76,12 +83,13 @@ def get_all_image_file_names():
     image_files = [os.path.join(outer_dir, label, file_name)
                         for label in labels
                         for file_name in os.listdir(os.path.join(outer_dir, label))
-                        if random.random() > 0.99]
+                        if random.random() > 0.8]
     print 'Number of images used:', len(image_files)
     return image_files
 
 def get_training_and_test_data():
     image_files = get_all_image_file_names()
+    np.random.shuffle(image_files)
     training_images = image_files[:len(image_files)/2]
     test_images = image_files[len(image_files)/2:]
     training_data = np.array([read_png_file(image_file) for image_file in training_images])
